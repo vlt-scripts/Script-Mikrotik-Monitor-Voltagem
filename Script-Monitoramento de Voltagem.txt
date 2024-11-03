@@ -1,0 +1,23 @@
+# Define o valor mínimo e máximo de voltagem
+:gl voltagemin 200
+:gl voltagemax 240
+# Obtém o valor atual de voltagem
+:gl voltage [/system health get voltage]
+
+# Verifica se a voltagem está abaixo do mínimo
+:if ($voltage < $voltagemin && [/interface ethernet get [find default-name=ether2] poe-out] != "off") do={
+    # Desativa a alimentação PoE na interface Ethernet 2
+    /interface ether set [ find default-name=ether2 ] poe-out=off;
+    /interface ether set [ find default-name=ether3 ] poe-out=off;
+    :delay 1s;
+    /log error message="Voltagem Baixa= $voltage - PoE na Ether 2,3 desativado"
+}
+
+# Verifica se a voltagem está acima do máximo
+:if ($voltage > $voltagemax && [/interface ethernet get [find default-name=ether2] poe-out] != "forced-on") do={
+    # Ativa a alimentação PoE na interface Ethernet 2
+    /interface ether set [ find default-name=ether2 ] poe-out=forced-on;
+    /interface ether set [ find default-name=ether3 ] poe-out=forced-on;
+    :delay 1s;
+    /log warning message="Voltagem Alta= $voltage - PoE na Ether 2,3 ativado"
+}
